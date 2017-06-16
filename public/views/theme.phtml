@@ -5,9 +5,21 @@
 	<title>ZM Upload</title>
     <link href="/css/style.css" rel="stylesheet" type="text/css" />
     <!--[if gte IE 9]><style type="text/css">.gradient {filter: none;}</style><![endif]-->
+    <script src="//unpkg.com/mithril/mithril.js"></script>
 </head>
 <body>
-THIS IS THEME<br />
-<?=$this->phtml(__DIR__ . '/' . $page)?>
+    <div id="wrap"><?=$this->phtml(__DIR__ . '/' . $page)?></div>
+    <script src="/js/polythene.js"></script>
+    <script src="/js/app.js"></script>
+    <script type="text/javascript">
+    new AppInit("<?=ini_get('upload_max_filesize')?>", "<?=$authorized?>");
+    function show_all() {
+        var sas = document.querySelectorAll('.dyn-show');
+        for(var i=0;i<sas.length;i++) sas[i].className = "dyn-show show";
+    }
+    window.onload = function() {
+        setTimeout(show_all, 500)
+    }
+</script>
 </body>
 </html>
