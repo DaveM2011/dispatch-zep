@@ -35,3 +35,7 @@ body {
 .pe-notification__holder {
     z-index: 5000 !important;
 }
+.dnd {
+    height: 4em;
+    border: 2px dotted #fff;
+}
