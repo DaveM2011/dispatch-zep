@@ -1,4 +1,4 @@
 app/data
 *.log
 vendor
-app/Caddyfile 
+app/Caddyfile

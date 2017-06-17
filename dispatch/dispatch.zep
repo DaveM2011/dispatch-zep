@@ -94,8 +94,13 @@ class Dispatch {
     // renders and returns the content of a template
     public function phtml(path, array vars = []) {
         ob_start();
-        extract(this->vars, EXTR_SKIP);
-        extract(vars, EXTR_SKIP);
+        var k, v;
+        for k, v in this->vars {
+            let {k} = v;
+        }
+        for k, v in vars {
+            let {k} = v;
+        }
         require path . ".phtml";
         return trim(ob_get_clean());
     }
