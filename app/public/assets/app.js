@@ -60,43 +60,43 @@ const AppInit = (function(maxFileSize, token){
     const File = {
         //oninit: vnode => console.log(vnode),
         info: null,
-        view: vnode => m("div", vnode.attrs.name, [
-            m("button", {onclick: File.getPublicLink.bind(vnode.attrs)}, "Get public link"),
-            m("button", {onclick: File.getPublicLink.bind(vnode.attrs)}, "Delete"),
-            m("div", vnode.state.info)
-        ]),
         getPublicLink: function(e) {
             var name = this.name;
             if (!name)
                 return false;
 
             m.request({
-                    method: "POST",
-                    url: "/manage?p=link&f=" + name
-                }).then(
-                    function(result, me) {
-                        this.info = [
-                            m("div", [
-                                m("button", {
-                                    label: "Copy to clipboard",
-                                    events: {
-                                        onclick: () => (copyToClipboard(location.origin + "/" + result.data), polythene.dialog.hide({id: "publiclink"}), polythene.snackbar.show({tone: "light", title: "Link copied to clipboard", timeout: 2}, {position: "container"}))
-                                    }
-                                }),
-                            ]),
-                            m("div", [
-                                m("textarea", {
-                                    onclick: e => e.target.select()
-                                }, location.origin + "/" + result.data),
-                                m("a", {
-                                    href: location.origin + "/" + result.data,
-                                    target: "_blank"
-                                }, "Open in new tab")
-                            ])
-                        ]
-                    }
-                );
-        }
+                method: "POST",
+                url: "/manage?p=link&f=" + name
+            }).then(
+                function(result, me) {
+                    this.info = [
+                        m("div", [
+                            m("button", {
+                                label: "Copy to clipboard",
+                                events: {
+                                    onclick: () => (copyToClipboard(location.origin + "/" + result.data), polythene.dialog.hide({id: "publiclink"}), polythene.snackbar.show({tone: "light", title: "Link copied to clipboard", timeout: 2}, {position: "container"}))
+                                }
+                            }),
+                        ]),
+                        m("div", [
+                            m("textarea", {
+                                onclick: e => e.target.select()
+                            }, location.origin + "/" + result.data),
+                            m("a", {
+                                href: location.origin + "/" + result.data,
+                                target: "_blank"
+                            }, "Open in new tab")
+                        ])
+                    ]
+                }
+            );
+        },
+        view: vnode => m("div", vnode.attrs.name, [
+            m("a", {onclick: File.getPublicLink.bind(vnode.attrs)}, "Get public link"),
+            m("a", {onclick: File.getPublicLink.bind(vnode.attrs)}, "Delete"),
+            m("div", vnode.state.info)
+        ])
     }
 
     const UploadFile = (file, xhr) => ({
@@ -220,7 +220,10 @@ const AppInit = (function(maxFileSize, token){
                         return false;
                     }
                 }, [
-                    m("span", "Max file size: " + maxFileSize)
+                    m(".info", [
+                        m(".icon"),
+                        m("span", "Max file size: " + maxFileSize)
+                    ])
                 ]),
                 // m("a.hint--bottom.hint--rounded.hide", {
                 //     href: "/?ztmpl=" + new Date().getTime(),
@@ -242,10 +245,12 @@ const AppInit = (function(maxFileSize, token){
         view: vnode => {
             return [
                 m(Nav, {active: "manage"}),
-                m("ul", [
-                    vnode.state.files.length == 0 && m("li", {title: "No files"}),
-                    vnode.state.files.map(a => m(File, {name: a}))
-                ])
+                m("#manage",
+                    m("ul", [
+                        vnode.state.files.length == 0 && m("li", {title: "No files"}),
+                        vnode.state.files.map(a => m(File, {name: a}))
+                    ])
+                )
             ]
         }
     }
