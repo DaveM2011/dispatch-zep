@@ -106,100 +106,127 @@ const AppInit = (function(maxFileSize, token){
     // m(polythene.button, {label: "Upload", url: {href: "/", oncreate: m.route.link}}),
     // m(polythene.button, {label: "Manage", url: {href: "/manage", oncreate: m.route.link}}),
 
+    const Layout = {
+        view: vnode => {
+            return m("main", [
+                m("header", [
+                    m(".logo"),
+                    m(".brand", [
+                        m(".title", "Zombie Modding"),
+                        m(".sub", "Uploader")
+                    ])
+                ]),
+                m("#content", vnode.children)
+            ])
+        }
+    }
+
+    const Nav = {
+        view: vnode => {
+            return m("nav", [
+                m("li", m("a", {href: "/", oncreate: m.route.link}, "Upload")),
+                m("li", m("a", {href: "/", oncreate: m.route.link}, "Manage"))
+            ])
+        }
+    }
+
     const Upload = {
-        view: vnode => m(".container", [
-            m(".tc", "Max file size: " + maxFileSize),
-            m(".dnd", {
-                ondragenter: e => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    return false;
-                },
-                ondragover: e => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    return false;
-                },
-                ondrop: e => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    var dataTransfer = e.dataTransfer;
-                    interval = null;
-                    if(dataTransfer && dataTransfer.files && dataTransfer.files.length > 0) {
-                        for(var i = 0; i < dataTransfer.files.length; i++) {
-                            var file = dataTransfer.files[i];
-                            var xhr = new XMLHttpRequest();
-                            var upload = xhr.upload;
-                            xhr.onreadystatechange = function(){
-                                if(xhr.readyState === 4) {
-                                    if(xhr.status === 200) {
-                                        //if($this.data('done')) $this.data('done').apply($this, [{id: uuid, progress: 100, response: xhr.responseText}]);
+        view: vnode => {
+            return [
+                m(Nav),
+                m(".tc", "Max file size: " + maxFileSize),
+                m(".dnd", {
+                    ondragenter: e => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return false;
+                    },
+                    ondragover: e => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return false;
+                    },
+                    ondrop: e => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        var dataTransfer = e.dataTransfer;
+                        interval = null;
+                        if(dataTransfer && dataTransfer.files && dataTransfer.files.length > 0) {
+                            for(var i = 0; i < dataTransfer.files.length; i++) {
+                                var file = dataTransfer.files[i];
+                                var xhr = new XMLHttpRequest();
+                                var upload = xhr.upload;
+                                xhr.onreadystatechange = function(){
+                                    if(xhr.readyState === 4) {
+                                        if(xhr.status === 200) {
+                                            //if($this.data('done')) $this.data('done').apply($this, [{id: uuid, progress: 100, response: xhr.responseText}]);
+                                        } else {
+                                            //if($this.data('error')) $this.data('error').apply($this, [{id: uuid, progress: 100, response: xhr.responseText}]);
+                                        }
+                                    }
+                                }
+                                var received = 0, check = new Date().getTime(), bytesUploaded = 0, tracking = {};
+                                var tfun = throttle(function(e){
+                                    bytesUploaded = e.loaded || 0;
+                                    if(bytesUploaded < 0) {
+                                        bytesUploaded = 0;
+                                    }
+                                    if(bytesUploaded > e.total) {
+                                        bytesUploaded = e.total;
+                                    }
+                                    var tickTime = new Date().getTime();
+                                    if(!tracking.startTime) {
+                                        tracking.startTime = new Date().getTime();
+                                        tracking.lastTime = tracking.startTime;
+                                        tracking.currentSpeed = 0;
+                                        tracking.averageSpeed = 0;
+                                        tracking.bytesUploaded = bytesUploaded;
+                                    } else if(tracking.startTime > tickTime) {
+                                        //this.debug("When backwards in time");
                                     } else {
-                                        //if($this.data('error')) $this.data('error').apply($this, [{id: uuid, progress: 100, response: xhr.responseText}]);
+                                        // Get time and deltas
+                                        var now = new Date().getTime();
+                                        //var lastTime = tracking.lastTime;
+                                        var deltaTime = now - tracking.lastTime;
+                                        var deltaBytes = bytesUploaded - tracking.bytesUploaded;
+                                        if(deltaBytes === 0 || deltaTime === 0) {
+                                            //return tracking;
+                                        }
+                                        // Update tracking object
+                                        tracking.lastTime = now;
+                                        tracking.bytesUploaded = bytesUploaded;
+                                        // Calculate speeds
+                                        tracking.currentSpeed = (deltaBytes * 8) / (deltaTime / 1000);
+                                        tracking.averageSpeed = (tracking.bytesUploaded * 8) / ((now - tracking.startTime) / 1000);
                                     }
+                                }, 1000);
+                                upload.onprogress = function(e) {
+                                    tfun(e);
+                                    //if($this.data('progress')) $this.data('progress').apply($this, [{id: uuid, progress: Math.round(e.loaded / e.total * 100), speed: {current: tracking.currentSpeed, average: tracking.averageSpeed}}]);
                                 }
+                                var uuid = "";//methods.genId();
+                                xhr.open('POST', '/upload', true);
+                                xhr.setRequestHeader('test', file.fileName);
+                                var data = new FormData();
+                                data.append('dlmodulef', file);
+                                data.append('ns', 'yes');
+                                xhr.send(data);
+                                var item = {
+                                    id: uuid,
+                                    file: file
+                                }
+                                //if($this.data('drop')) $this.data('drop').apply($this, [item, xhr]);
                             }
-                            var received = 0, check = new Date().getTime(), bytesUploaded = 0, tracking = {};
-                            var tfun = throttle(function(e){
-                                bytesUploaded = e.loaded || 0;
-                                if(bytesUploaded < 0) {
-                                    bytesUploaded = 0;
-                                }
-                                if(bytesUploaded > e.total) {
-                                    bytesUploaded = e.total;
-                                }
-                                var tickTime = new Date().getTime();
-                                if(!tracking.startTime) {
-                                    tracking.startTime = new Date().getTime();
-                                    tracking.lastTime = tracking.startTime;
-                                    tracking.currentSpeed = 0;
-                                    tracking.averageSpeed = 0;
-                                    tracking.bytesUploaded = bytesUploaded;
-                                } else if(tracking.startTime > tickTime) {
-                                    //this.debug("When backwards in time");
-                                } else {
-                                    // Get time and deltas
-                                    var now = new Date().getTime();
-                                    //var lastTime = tracking.lastTime;
-                                    var deltaTime = now - tracking.lastTime;
-                                    var deltaBytes = bytesUploaded - tracking.bytesUploaded;
-                                    if(deltaBytes === 0 || deltaTime === 0) {
-                                        //return tracking;
-                                    }
-                                    // Update tracking object
-                                    tracking.lastTime = now;
-                                    tracking.bytesUploaded = bytesUploaded;
-                                    // Calculate speeds
-                                    tracking.currentSpeed = (deltaBytes * 8) / (deltaTime / 1000);
-                                    tracking.averageSpeed = (tracking.bytesUploaded * 8) / ((now - tracking.startTime) / 1000);
-                                }
-                            }, 1000);
-                            upload.onprogress = function(e) {
-                                tfun(e);
-                                //if($this.data('progress')) $this.data('progress').apply($this, [{id: uuid, progress: Math.round(e.loaded / e.total * 100), speed: {current: tracking.currentSpeed, average: tracking.averageSpeed}}]);
-                            }
-                            var uuid = "";//methods.genId();
-                            xhr.open('POST', '/upload', true);
-                            xhr.setRequestHeader('test', file.fileName);
-                            var data = new FormData();
-                            data.append('dlmodulef', file);
-                            data.append('ns', 'yes');
-                            xhr.send(data);
-                            var item = {
-                                id: uuid,
-                                file: file
-                            }
-                            //if($this.data('drop')) $this.data('drop').apply($this, [item, xhr]);
                         }
+                        return false;
                     }
-                    return false;
-                }
-            }),
-            m("a.hint--bottom.hint--rounded.hide", {
-                href: "/?ztmpl=" + new Date().getTime(),
-                "data-hint": "Used to upload map in zip file, must contain (token file, url file & one folder with map files inside)"
-            }, "Map upload zip"),
-        ])
+                }),
+                m("a.hint--bottom.hint--rounded.hide", {
+                    href: "/?ztmpl=" + new Date().getTime(),
+                    "data-hint": "Used to upload map in zip file, must contain (token file, url file & one folder with map files inside)"
+                }, "Map upload zip")
+            ]
+        }
     }
     const Manage = {
         files: [],
@@ -216,9 +243,10 @@ const AppInit = (function(maxFileSize, token){
             vnode.state.files.map(a => m(File, {name: a}))
         ])
     }
+
     var root = document.getElementById("app");
     m.route(root, "/", {
-        "/": {render: () => m(Upload)},
-        "/manage": {render: () => m(Manage)}
+        "/": {render: () => m(Layout, m(Upload))},
+        "/manage": {render: () => m(Layout, m(Manage))}
     })
 })
