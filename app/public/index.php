@@ -4,7 +4,7 @@ define("DATADIR", BASEDIR . "data/");
 define('CHUNK_SIZE', 1024*1024);
 define('ALLOWED_EXTS', ["exe", "zip", "iwd"]);
 
-$redis = new \Redis();
+$redis = new Redis();
 $redis->connect("127.0.0.1", 6379);
 $redis->auth('l8VjnR80ZN%qNXNJ!lyD');
 

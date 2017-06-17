@@ -263,8 +263,7 @@ const AppInit = (function(maxFileSize, token){
     }
     var root = document.getElementById("wrap");
     m.route(root, "/", {
-        "/": {render: () => m(Layout, m(Home))},
-        "/upload": {render: () => m(Layout, m(Upload))},
+        "/": {render: () => m(Layout, m(Upload))},
         "/manage": {render: () => m(Layout, m(Manage))}
     })
 })
