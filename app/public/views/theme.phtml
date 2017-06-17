@@ -10,12 +10,8 @@
 	</head>
 	<body>
 	    <div id="app" class="container"><?=$this->phtml(__DIR__ . '/' . $page)?></div>
-		<footer>
-			<p>Zombie Modding &copy; <?= date("Y", time()) ?> - All Rights Reserved</p>
-		</footer>
+		<footer><p>Zombie Modding &copy; <?= date("Y", time()) ?> - All Rights Reserved</p></footer>
 	    <script src="/assets/app.js"></script>
-	    <script type="text/javascript">
-		    new AppInit("<?=ini_get('upload_max_filesize')?>", "<?=$authorized?"true":"false"?>");
-		</script>
+	    <script type="text/javascript">new AppInit("<?=ini_get('upload_max_filesize')?>", "<?=$authorized?"true":"false"?>")</script>
 	</body>
 </html>

@@ -1,7 +1,7 @@
-const AppInit = (function(maxFileSize, token){
+const AppInit = (function(maxFileSize, authorized){
 
     delete window.AppInit;
-    console.log(maxFileSize, token);
+    console.log(maxFileSize, authorized);
 
     const copyToClipboard = text => {
         if (window.clipboardData && window.clipboardData.setData) {
@@ -63,56 +63,27 @@ const AppInit = (function(maxFileSize, token){
     }
 
     const File = {
-        //oninit: vnode => console.log(vnode),
-        info: null,
-        getPublicLink: function(e) {
-            var name = this.name;
-            if (!name)
-                return false;
-
-            m.request({
-                method: "POST",
-                url: "/manage?p=link&f=" + name
-            }).then(
-                function(result, me) {
-                    this.info = [
-                        m("div", [
-                            m("button", {
-                                label: "Copy to clipboard",
-                                events: {
-                                    onclick: () => (copyToClipboard(location.origin + "/" + result.data), polythene.dialog.hide({id: "publiclink"}), polythene.snackbar.show({tone: "light", title: "Link copied to clipboard", timeout: 2}, {position: "container"}))
-                                }
-                            }),
-                        ]),
-                        m("div", [
-                            m("textarea", {
-                                onclick: e => e.target.select()
-                            }, location.origin + "/" + result.data),
-                            m("a", {
-                                href: location.origin + "/" + result.data,
-                                target: "_blank"
-                            }, "Open in new tab")
-                        ])
-                    ]
-                }
-            );
-        },
         view: vnode => m(".item", [
             m(".main", [
                 m(".name", {title: vnode.attrs.name}, vnode.attrs.name),
-                m(".size", "100mb")
+                m(".size", bytesToSize(vnode.attrs.size))
             ]),
             m(".action", [
                 /* @Dave, I've broken this. Could you fix it plz <3 */
-                m(".link", {onclick: () => {copyToClipboard(location.origin + "/" + result.data)}}),
-                m(".delete", {onclick: File.getPublicLink.bind(vnode.attrs)}),
+                m(".link", {onclick: () => {copyToClipboard(location.origin + "/" + vnode.attrs.link)}}),
+                m(".delete", {onclick: e => File.remove(vnode.attrs.name)}),
             ])
-        ])
+        ]),
+        remove: name => {
+            console.log(name);
+            if (!name)
+                return false;
+            m.request({
+                method: "POST",
+                url: "/manage?p=del&f=" + name
+            }).then(data => (Manage.load(), data))
+        }
     }
-
-    const UploadFile = (file, xhr) => ({
-
-    })
 
     const Layout = {
         view: vnode => {
@@ -128,7 +99,7 @@ const AppInit = (function(maxFileSize, token){
                     vnode.attrs.hasNav ? [
                         m("nav", [
                             m("li", m("a", {class: vnode.attrs.active == "upload" ? "active" : "", href: "/", oncreate: m.route.link}, "Upload")),
-                            m("li", m("a", {class: vnode.attrs.active == "manage" ? "active" : "",href: "/manage", oncreate: m.route.link}, "Manage"))
+                            m("li", m("a", {class: vnode.attrs.active == "manage" ? "active" : "", href: "/manage", oncreate: m.route.link}, "Manage"))
                         ])
                     ] : null,
                     vnode.children
@@ -138,16 +109,15 @@ const AppInit = (function(maxFileSize, token){
     }
 
     const Uploaded = {
-        fileName: "zm_placeholder", /* @Dave, add the actual file name <3 */
         view: vnode => {
             return [
                 m("#uploaded", [
                     m(".helper", [
-                        m(".icon", {class: "exe" /* @Dave, TODO change depending on file extension. Just needs the class being changed to exe, zip, or iwd*/ }),
-                        m("p", vnode.state.fileName+" has been uploaded"),
+                        m(".icon", {class: vnode.attrs.ext}),
+                        m("p", vnode.attrs.file + " has been uploaded"),
                         m("#linkInput", [
-                            m("input", {onclick: e => e.target.select(), placeholder: "link"}),
-                            m(".link", {onclick: () => { copyToClipboard() }})
+                            m("input", {onclick: e => e.target.select(), placeholder: "link", value: location.origin + "/" + vnode.attrs.link, readonly: ""}),
+                            m(".link", {onclick: () => { copyToClipboard(location.origin + "/" + vnode.attrs.link) }})
                         ])
                     ])
                 ])
@@ -169,8 +139,11 @@ const AppInit = (function(maxFileSize, token){
     }
 
     const Upload = {
+        uploaded: null,
+        error: null,
+        current: null, // @Michael if vnode.state.current is not null display progress, speed.current & speed.average in view maybe a progress bar etc
         view: vnode => {
-            return [
+            return vnode.state.uploaded && m(Uploaded, vnode.state.uploaded) || [
                 m("#dropzone", {
                     ondragenter: e => {
                         e.stopPropagation();
@@ -190,17 +163,8 @@ const AppInit = (function(maxFileSize, token){
                         if(dataTransfer && dataTransfer.files && dataTransfer.files.length > 0) {
                             for(let i = 0; i < dataTransfer.files.length; i++) {
                                 var file = dataTransfer.files[i];
-                                var xhr = new XMLHttpRequest();
-                                var upload = xhr.upload;
-                                xhr.onreadystatechange = function(){
-                                    if(xhr.readyState === 4) {
-                                        if(xhr.status === 200) {
-                                            //if($this.data('done')) $this.data('done').apply($this, [{id: uuid, progress: 100, response: xhr.responseText}]);
-                                        } else {
-                                            //if($this.data('error')) $this.data('error').apply($this, [{id: uuid, progress: 100, response: xhr.responseText}]);
-                                        }
-                                    }
-                                }
+                                var data = new FormData();
+                                data.append('dlmodulef', file);
                                 var received = 0, check = new Date().getTime(), bytesUploaded = 0, tracking = {};
                                 var tfun = throttle(function(e){
                                     bytesUploaded = e.loaded || 0;
@@ -236,22 +200,22 @@ const AppInit = (function(maxFileSize, token){
                                         tracking.averageSpeed = (tracking.bytesUploaded * 8) / ((now - tracking.startTime) / 1000);
                                     }
                                 }, 1000);
-                                upload.onprogress = function(e) {
-                                    tfun(e);
-                                    //if($this.data('progress')) $this.data('progress').apply($this, [{id: uuid, progress: Math.round(e.loaded / e.total * 100), speed: {current: tracking.currentSpeed, average: tracking.averageSpeed}}]);
-                                }
-                                var uuid = "";//methods.genId();
-                                xhr.open('POST', '/upload', true);
-                                xhr.setRequestHeader('test', file.fileName);
-                                var data = new FormData();
-                                data.append('dlmodulef', file);
-                                data.append('ns', 'yes');
-                                xhr.send(data);
-                                var item = {
-                                    id: uuid,
-                                    file: file
-                                }
-                                //if($this.data('drop')) $this.data('drop').apply($this, [item, xhr]);
+                                
+                                m.request({
+                                    method: "POST",
+                                    url: "/upload",
+                                    data: data,
+                                    config: xhr => {
+                                        var upload = xhr.upload;
+                                        upload.onprogress = function(e) {
+                                            tfun(e);
+                                            vnode.state.current = {
+                                                progress: Math.round(e.loaded / e.total * 100),
+                                                speed: {current: tracking.currentSpeed, average: tracking.averageSpeed}
+                                            }
+                                        }
+                                    }
+                                }).then(data => (data.result[0] && (vnode.state.uploaded = data.result[0]), data))
                             }
                         }
                         return false;
@@ -261,38 +225,35 @@ const AppInit = (function(maxFileSize, token){
                         m(".icon"),
                         m("span", "Max file size: " + maxFileSize)
                     ])
-                ]),
-                // m("a.hint--bottom.hint--rounded.hide", {
-                //     href: "/?ztmpl=" + new Date().getTime(),
-                //     "data-hint": "Used to upload map in zip file, must contain (token file, url file & one folder with map files inside)"
-                // }, "Map upload zip")
+                ])
             ]
         }
     }
     const Manage = {
         files: [],
-        oninit: vnode => m.request({
+        oninit: vnode => Manage.load(),
+        view: vnode => {
+            return [
+                m("#manage", [
+                    vnode.state.files.length == 0 && m("li", {title: "No files"}),
+                    vnode.state.files.map(a => m(File, a))
+                ])
+            ]
+        },
+        load: () => m.request({
             method: "POST",
             url: "/manage?p=list",
             withCredentials: true,
         })
         .then(result => {
             Manage.files = result.data
-        }),
-        view: vnode => {
-            return [
-                m("#manage", [
-                    vnode.state.files.length == 0 && m("li", {title: "No files"}),
-                    vnode.state.files.map(a => m(File, {name: a}))
-                ])
-            ]
-        }
+        })
     }
 
-    m.route(document.getElementById("app"), "/", {
-        "/": {render: () =>         m(Layout, {hasNav: true, active: "upload"}, m(Upload))},
-        "/manage": {render: () =>   m(Layout, {hasNav: true, active: "manage"}, m(Manage))},
-        "/uploaded": {render: () => m(Layout, m(Uploaded))},
-        "/noauth": {render: () =>   m(Layout, m(NoAuth))}
+    m.route(document.getElementById("app"), authorized ? "/" : "/noauth", {
+        "/": {onmatch: () => (authorized && Upload), render: vnode => m(Layout, {hasNav: true, active: "upload"}, vnode)},
+        "/manage": {onmatch: () => (authorized && Manage), render: vnode => m(Layout, {hasNav: true, active: "manage"}, vnode)},
+        "/uploaded": {onmatch: () => (authorized && Uploaded), render: vnode => m(Layout, vnode)},
+        "/noauth": {render: () => m(Layout, m(NoAuth))}
     })
 })
