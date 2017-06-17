@@ -1,2 +1,4 @@
-add/data
-.log
+app/data
+*.log
+vendor
+app/Caddyfile 

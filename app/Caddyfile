@@ -1,13 +1,13 @@
 *:3001
 log stdout
 errors stdout
-root /media/ssd1/projects/dispatch-zep/app/public
+root /Users/michael/Downloads/dispatch-zep-master/app/public
 gzip
 rewrite / {
 	regexp .*
 	to {path} {path}/ /index.php{uri}
 }
-fastcgi / unix:///run/php/php7.0-fpm.sock php {
-	root /media/ssd1/projects/dispatch-zep/app/public
+fastcgi / 127.0.0.1:9000 php {
+	root /Users/michael/Downloads/dispatch-zep-master/app/public
 	index index.php
 }

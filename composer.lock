@@ -1,0 +1,85 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "This file is @generated automatically"
+    ],
+    "hash": "1e51503d6b0f12fba84db5713acf100f",
+    "content-hash": "4414452e3023f2924d715bfe27c6084c",
+    "packages": [
+        {
+            "name": "phalcon/zephir",
+            "version": "0.9.8",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/phalcon/zephir.git",
+                "reference": "63a35e13c5150e19b3d6abe00fdd65e2471a84f4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phalcon/zephir/zipball/63a35e13c5150e19b3d6abe00fdd65e2471a84f4",
+                "reference": "63a35e13c5150e19b3d6abe00fdd65e2471a84f4",
+                "shasum": ""
+            },
+            "require": {
+                "ext-ctype": "*",
+                "ext-hash": "*",
+                "ext-json": "*",
+                "ext-xml": "*",
+                "php": ">=5.4"
+            },
+            "require-dev": {
+                "ext-gmp": "*",
+                "ext-pdo": "*",
+                "ext-pdo_sqlite": "*",
+                "phpunit/phpunit": "^4.8",
+                "squizlabs/php_codesniffer": "^2.8"
+            },
+            "bin": [
+                "bin/zephir"
+            ],
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Zephir\\": "Library"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Contributors",
+                    "homepage": "https://github.com/phalcon/zephir/graphs/contributors"
+                },
+                {
+                    "name": "Zephir Team",
+                    "email": "team@phalconphp.com",
+                    "homepage": "https://zephir-lang.com/"
+                }
+            ],
+            "description": "Zephir is a compiled high level language aimed to the creation of C-extensions for PHP",
+            "homepage": "https://zephir-lang.com/",
+            "keywords": [
+                "extension",
+                "phalcon",
+                "zephir"
+            ],
+            "time": "2017-05-21 13:35:49"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": [],
+    "platform-dev": []
+}
