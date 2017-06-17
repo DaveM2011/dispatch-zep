@@ -4,7 +4,7 @@ const AppInit = (function(maxFileSize, token){
     const copyToClipboard = text => {
         if (window.clipboardData && window.clipboardData.setData) {
             // IE specific code path to prevent textarea being shown while dialog is visible.
-            return clipboardData.setData("Text", text); 
+            return clipboardData.setData("Text", text);
         } else if (document.queryCommandSupported && document.queryCommandSupported("copy")) {
             var textarea = document.createElement("textarea");
             textarea.textContent = text;
@@ -130,21 +130,14 @@ const AppInit = (function(maxFileSize, token){
     const UploadFile = (file, xhr) => ({
 
     })
-    const Layout = {
-        view: vnode => m("main", [
-            m(polythene.toolbar, {tone: "dark"}, [
-                m(polythene.button, {label: "Upload", url: {href: "/upload", oncreate: m.route.link}}),
-                m(polythene.button, {label: "Manage", url: {href: "/manage", oncreate: m.route.link}}),
-            ]),
-            m("section", vnode.children),
-            m(polythene.dialog, { id: "publiclink" }),
-            m(polythene.snackbar)
-        ])
-    }
+
+    // m(polythene.button, {label: "Upload", url: {href: "/", oncreate: m.route.link}}),
+    // m(polythene.button, {label: "Manage", url: {href: "/manage", oncreate: m.route.link}}),
+
     const Home = {
         view: function() {
             return [
-                
+
             ]
         }
     }
@@ -152,7 +145,7 @@ const AppInit = (function(maxFileSize, token){
         oninit: vnode => {
 
         },
-        view: vnode => m(".wrap", [
+        view: vnode => m(".container", [
             m(".tc", "Max file size: " + maxFileSize),
             m(".dnd", {
                 ondragenter: e => {
@@ -261,9 +254,9 @@ const AppInit = (function(maxFileSize, token){
             vnode.state.files.map(a => m(File, {name: a}))
         ])
     }
-    var root = document.getElementById("wrap");
+    var root = document.getElementById("app");
     m.route(root, "/", {
-        "/": {render: () => m(Layout, m(Upload))},
-        "/manage": {render: () => m(Layout, m(Manage))}
+        "/": {render: () => m(Upload)},
+        "/manage": {render: () => m(Manage)}
     })
 })

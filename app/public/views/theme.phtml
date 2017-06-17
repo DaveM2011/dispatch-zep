@@ -8,18 +8,20 @@
 	    <script src="//unpkg.com/mithril/mithril.js"></script>
 	</head>
 	<body>
-	    <div id="wrap"><?=$this->phtml(__DIR__ . '/' . $page)?></div>
-	    <script src="/js/polythene.js"></script>
+	    <main id="app"><?=$this->phtml(__DIR__ . '/' . $page)?></main>
+		<footer>
+			<p>Zombie Modding &copy; <?= date("Y", time()) ?> - All Rights Reserved</p>
+		</footer>
 	    <script src="/js/app.js"></script>
 	    <script type="text/javascript">
-	    new AppInit("<?=ini_get('upload_max_filesize')?>", "<?=$authorized?"true":"false"?>");
-	    function show_all() {
-	        var sas = document.querySelectorAll('.dyn-show');
-	        for(var i=0;i<sas.length;i++) sas[i].className = "dyn-show show";
-	    }
-	    window.onload = function() {
-	        setTimeout(show_all, 500)
-	    }
-	</script>
+		    new AppInit("<?=ini_get('upload_max_filesize')?>", "<?=$authorized?"true":"false"?>");
+		    function show_all() {
+		        var sas = document.querySelectorAll('.dyn-show');
+		        for(var i=0;i<sas.length;i++) sas[i].className = "dyn-show show";
+		    }
+		    window.onload = function() {
+		        setTimeout(show_all, 500)
+		    }
+		</script>
 	</body>
 </html>
