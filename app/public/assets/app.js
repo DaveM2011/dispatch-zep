@@ -124,8 +124,8 @@ const AppInit = (function(maxFileSize, token){
     const Nav = {
         view: vnode => {
             return m("nav", [
-                m("li", m("a", {href: "/", oncreate: m.route.link}, "Upload")),
-                m("li", m("a", {href: "/", oncreate: m.route.link}, "Manage"))
+                m("li", m("a", {class: vnode.attrs.active == "upload" ? "active" : "", href: "/", oncreate: m.route.link}, "Upload")),
+                m("li", m("a", {class: vnode.attrs.active == "manage" ? "active" : "",href: "/manage", oncreate: m.route.link}, "Manage"))
             ])
         }
     }
@@ -133,9 +133,8 @@ const AppInit = (function(maxFileSize, token){
     const Upload = {
         view: vnode => {
             return [
-                m(Nav),
-                m(".tc", "Max file size: " + maxFileSize),
-                m(".dnd", {
+                m(Nav, {active: "upload"}),
+                m("#dropzone", {
                     ondragenter: e => {
                         e.stopPropagation();
                         e.preventDefault();
@@ -220,11 +219,13 @@ const AppInit = (function(maxFileSize, token){
                         }
                         return false;
                     }
-                }),
-                m("a.hint--bottom.hint--rounded.hide", {
-                    href: "/?ztmpl=" + new Date().getTime(),
-                    "data-hint": "Used to upload map in zip file, must contain (token file, url file & one folder with map files inside)"
-                }, "Map upload zip")
+                }, [
+                    m("span", "Max file size: " + maxFileSize)
+                ]),
+                // m("a.hint--bottom.hint--rounded.hide", {
+                //     href: "/?ztmpl=" + new Date().getTime(),
+                //     "data-hint": "Used to upload map in zip file, must contain (token file, url file & one folder with map files inside)"
+                // }, "Map upload zip")
             ]
         }
     }
@@ -238,10 +239,15 @@ const AppInit = (function(maxFileSize, token){
         .then(result => {
             Manage.files = result.data
         }),
-        view: vnode => m("ul", [
-            vnode.state.files.length == 0 && m("li", {title: "No files"}),
-            vnode.state.files.map(a => m(File, {name: a}))
-        ])
+        view: vnode => {
+            return [
+                m(Nav, {active: "manage"}),
+                m("ul", [
+                    vnode.state.files.length == 0 && m("li", {title: "No files"}),
+                    vnode.state.files.map(a => m(File, {name: a}))
+                ])
+            ]
+        }
     }
 
     var root = document.getElementById("app");
