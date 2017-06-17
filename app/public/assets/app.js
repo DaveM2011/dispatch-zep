@@ -59,74 +59,46 @@ const AppInit = (function(maxFileSize, token){
     }
     const File = {
         //oninit: vnode => console.log(vnode),
-        view: vnode => m(polythene.listTile, {title: vnode.attrs.name, secondary: {content: [
-            m(polythene.button, {events: {onclick: File.getPublicLink.bind(vnode.attrs)}}, "Delete"),
-            m(polythene.button, {events: {onclick: File.getPublicLink.bind(vnode.attrs)}}, "Get public link")
-        ]}}),
-        /*m(polythene.card, {
-            content: [{
-                primary: {
-                    content: [
-                        m("div", vnode.attrs.name),
-                        m("a.pub-link", {onclick: File.getPublicLink.bind(vnode.attrs)}, "Get public link")
-                    ]
-                }}
-            ]
-        }),*/
+        info: null,
+        view: vnode => m("div", vnode.attrs.name, [
+            m("button", {onclick: File.getPublicLink.bind(vnode.attrs)}, "Get public link"),
+            m("button", {onclick: File.getPublicLink.bind(vnode.attrs)}, "Delete"),
+            m("div", vnode.state.info)
+        ]),
         getPublicLink: function(e) {
-            console.log(this)
             var name = this.name;
-            if (!name) return false;
-            polythene.dialog.show({
-                tone: "dark",
-                backdrop: true,
-                modal: true,
-                content: m(polythene.mdSpinner, {
-                    permanent: true
-                })
-            }, {
-                id: "publiclink"
-            }).then(() => m.request({
-                method: "POST",
-                url: "/manage?p=link&f=" + name
-            }).then(result => (polythene.dialog.show({
-                tone: "dark",
-                backdrop: true,
-                class: "wrap-text",
-                style: {
-                    position: "relative",
-                },
-                footer: [
-                    m(polythene.button, {
-                        label: "Copy to clipboard",
-                        events: {
-                            onclick: () => (copyToClipboard(location.origin + "/" + result.data), polythene.dialog.hide({id: "publiclink"}), polythene.snackbar.show({tone: "light", title: "Link copied to clipboard", timeout: 2}, {position: "container"}))
-                        }
-                    }),
-                    m(polythene.button, {
-                        label: "Close",
-                        events: {
-                            onclick: () => polythene.dialog.hide({
-                                id: "publiclink"
-                            })
-                        }
-                    })
-                ],
-                content: [
-                    m("textarea", {
-                        onclick: e => e.target.select()
-                    }, location.origin + "/" + result.data),
-                    m("a", {
-                        href: location.origin + "/" + result.data,
-                        target: "_blank"
-                    }, "Open in new tab")
-                ]
-            }, {
-                id: "publiclink"
-            }), result.data)));
-            return false
+            if (!name)
+                return false;
+
+            m.request({
+                    method: "POST",
+                    url: "/manage?p=link&f=" + name
+                }).then(
+                    function(result, me) {
+                        this.info = [
+                            m("div", [
+                                m("button", {
+                                    label: "Copy to clipboard",
+                                    events: {
+                                        onclick: () => (copyToClipboard(location.origin + "/" + result.data), polythene.dialog.hide({id: "publiclink"}), polythene.snackbar.show({tone: "light", title: "Link copied to clipboard", timeout: 2}, {position: "container"}))
+                                    }
+                                }),
+                            ]),
+                            m("div", [
+                                m("textarea", {
+                                    onclick: e => e.target.select()
+                                }, location.origin + "/" + result.data),
+                                m("a", {
+                                    href: location.origin + "/" + result.data,
+                                    target: "_blank"
+                                }, "Open in new tab")
+                            ])
+                        ]
+                    }
+                );
         }
     }
+
     const UploadFile = (file, xhr) => ({
 
     })
@@ -134,17 +106,7 @@ const AppInit = (function(maxFileSize, token){
     // m(polythene.button, {label: "Upload", url: {href: "/", oncreate: m.route.link}}),
     // m(polythene.button, {label: "Manage", url: {href: "/manage", oncreate: m.route.link}}),
 
-    const Home = {
-        view: function() {
-            return [
-
-            ]
-        }
-    }
     const Upload = {
-        oninit: vnode => {
-
-        },
         view: vnode => m(".container", [
             m(".tc", "Max file size: " + maxFileSize),
             m(".dnd", {
@@ -249,8 +211,8 @@ const AppInit = (function(maxFileSize, token){
         .then(result => {
             Manage.files = result.data
         }),
-        view: vnode => m(polythene.list, [
-            vnode.state.files.length == 0 && m(polythene.listTile, {title: "No files"}),
+        view: vnode => m("ul", [
+            vnode.state.files.length == 0 && m("li", {title: "No files"}),
             vnode.state.files.map(a => m(File, {name: a}))
         ])
     }
