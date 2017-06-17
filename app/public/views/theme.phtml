@@ -16,13 +16,6 @@
 	    <script src="/assets/app.js"></script>
 	    <script type="text/javascript">
 		    new AppInit("<?=ini_get('upload_max_filesize')?>", "<?=$authorized?"true":"false"?>");
-		    function show_all() {
-		        var sas = document.querySelectorAll('.dyn-show');
-		        for(var i=0;i<sas.length;i++) sas[i].className = "dyn-show show";
-		    }
-		    window.onload = function() {
-		        setTimeout(show_all, 500)
-		    }
 		</script>
 	</body>
 </html>

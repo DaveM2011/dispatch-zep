@@ -242,6 +242,36 @@ main {
                 }
             }
         }
+
+        #noAuth {
+            height: 370px;
+            display: flex;
+            display: -webkit-flex;
+            justify-content: center;
+            align-items: center;
+
+            .icon {
+                background: url("images/lock.png") center no-repeat;
+                width: 145px;
+                height: 140px;
+                margin: 0 auto;
+                margin-bottom: 20px;
+            }
+
+            p {
+                font-size: 18px;
+                margin: 0;
+                a {
+                    color: lighten($zmScheme-brand-red, 10);
+                    text-decoration: none;
+
+                    transition: color .2s ease;
+                    &:hover {
+                        color: $zmScheme-brand-red;
+                    }
+                }
+            }
+        }
     }
 }
 

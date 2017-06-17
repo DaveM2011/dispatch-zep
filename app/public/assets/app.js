@@ -152,6 +152,19 @@ const AppInit = (function(maxFileSize, token){
         }
     }
 
+    const NoAuth = {
+        view: vnode => {
+            return [
+                m("#noAuth", [
+                    m(".helper", [
+                        m(".icon"),
+                        m("p", [m("span", "You need to "), m("a[href='']", "login"), m("span"," to access the uploader")])
+                    ])
+                ])
+            ]
+        }
+    }
+
     const Upload = {
         view: vnode => {
             return [
@@ -279,6 +292,7 @@ const AppInit = (function(maxFileSize, token){
     m.route(root, "/", {
         "/": {render: () => m(Layout, m(Upload))},
         "/manage": {render: () => m(Layout, m(Manage))},
-        "/uploaded": {render: () => m(Layout, m(Uploaded))}
+        "/uploaded": {render: () => m(Layout, m(Uploaded))},
+        "/noauth": {render: () => m(Layout, m(NoAuth))}
     })
 })
