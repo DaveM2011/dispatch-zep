@@ -140,7 +140,7 @@ const AppInit = (function(maxFileSize, token){
                 m(Nav, {active: "upload"}),
                 m("#uploaded", [
                     m(".helper", [
-                        m(".icon", {class: "exe" /*TODO change depending on file extension*/ }),
+                        m(".icon", {class: "exe" /* @Dave, TODO change depending on file extension. Just needs the class being changed to exe, zip, or iwd*/ }),
                         m("p", vnode.state.fileName+" has been uploaded"),
                         m("#linkInput", [
                             m("input", {onclick: e => e.target.select(), placeholder: "link"}),

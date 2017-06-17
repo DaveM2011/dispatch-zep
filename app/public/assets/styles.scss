@@ -111,9 +111,16 @@ main {
                     width: 100px;
                     height: 120px;
                     margin-bottom: 50px;
+                    background-size: 100px;
 
                     &.exe {
                         background-image: url("images/file-exe.png");
+                    }
+                    &.iwd {
+                        background-image: url("images/file-iwd.png");
+                    }
+                    &.zip {
+                        background-image: url("images/file-zip.png");
                     }
                 }
 
