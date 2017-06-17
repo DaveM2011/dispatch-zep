@@ -1,4 +1,4 @@
-const AppInit = (function(maxFileSize, authorized){
+const AppInit = (function(maxFileSize, authorized) {
 
     delete window.AppInit;
     console.log(maxFileSize, authorized);
@@ -242,8 +242,7 @@ const AppInit = (function(maxFileSize, authorized){
         },
         load: () => m.request({
             method: "POST",
-            url: "/manage?p=list",
-            withCredentials: true,
+            url: "/manage?p=list"
         })
         .then(result => {
             Manage.files = result.data
@@ -254,6 +253,7 @@ const AppInit = (function(maxFileSize, authorized){
         "/": {onmatch: () => (authorized && Upload), render: vnode => m(Layout, {hasNav: true, active: "upload"}, vnode)},
         "/manage": {onmatch: () => (authorized && Manage), render: vnode => m(Layout, {hasNav: true, active: "manage"}, vnode)},
         "/uploaded": {onmatch: () => (authorized && Uploaded), render: vnode => m(Layout, vnode)},
+        "/logout": {onmatch: () => window.location = "/logout"},
         "/noauth": {render: () => m(Layout, m(NoAuth))}
     })
 })

@@ -166,6 +166,11 @@ try {
         }
         return $app->response(json_encode($json), 200, ["content-type" => "application/json"]);
     });
+    $app->route("GET", '/logout', function () use ($app, $authorized) {
+        unset($_SESSION["access_token"]);
+        unset($_SESSION["access_id"]);
+        return $app->redirect("/");
+    });
     $app->route("GET", "/:hash", function ($args) use ($app, $authorized) {
         global $redis;
         $dir = DATADIR;
