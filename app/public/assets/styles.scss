@@ -177,6 +177,55 @@ main {
 
         #manage {
             height: 320px;
+            max-height: 320px;
+            overflow-y: auto;
+
+            .item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 15px 25px;
+
+                .main {
+
+                    .name {
+                        color: white;
+                        font-size: 18px;
+                        margin-bottom: 4px;
+                    }
+
+                    .size {
+                        font-size: 12px;
+                        color: rgba(white, .4);
+                    }
+                }
+
+                .action {
+                    .link, .delete {
+                        display: inline-block;
+                        width: 31px;
+                        height: 30px;
+                        cursor: pointer;
+                        opacity: .4;
+                        background: center no-repeat;
+                        background-size: 30px;
+                        &:hover {
+                            opacity: 1;
+                        }
+
+                        &.link {
+                            background-image: url("images/link.png") ;
+                            margin-right: 15px;
+                        }
+
+                        &.delete {
+                            background-image: url("images/delete.png") ;
+                            background-size: 20px;
+                            width: 22px;
+                        }
+                    }
+                }
+            }
         }
     }
 }

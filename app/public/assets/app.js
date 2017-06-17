@@ -98,8 +98,8 @@ const AppInit = (function(maxFileSize, token){
                 m(".size", "100mb")
             ]),
             m(".action", [
-                m(".link", {onclick: File.getPublicLink.bind(vnode.attrs)}, "Get public link"),
-                m(".delete", {onclick: File.getPublicLink.bind(vnode.attrs)}, "Delete"),
+                m(".link", {onclick: File.getPublicLink.bind(vnode.attrs)}),
+                m(".delete", {onclick: File.getPublicLink.bind(vnode.attrs)}),
             ])
         ])
     }
@@ -107,9 +107,6 @@ const AppInit = (function(maxFileSize, token){
     const UploadFile = (file, xhr) => ({
 
     })
-
-    // m(polythene.button, {label: "Upload", url: {href: "/", oncreate: m.route.link}}),
-    // m(polythene.button, {label: "Manage", url: {href: "/manage", oncreate: m.route.link}}),
 
     const Layout = {
         view: vnode => {
