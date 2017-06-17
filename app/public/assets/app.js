@@ -94,11 +94,12 @@ const AppInit = (function(maxFileSize, token){
         },
         view: vnode => m(".item", [
             m(".main", [
-                m(".name", vnode.attrs.name),
+                m(".name", {title: vnode.attrs.name}, vnode.attrs.name),
                 m(".size", "100mb")
             ]),
             m(".action", [
-                m(".link", {onclick: File.getPublicLink.bind(vnode.attrs)}),
+                /* @Dave, I've broken this. Could you fix it plz <3 */
+                m(".link", {onclick: () => {copyToClipboard(location.origin + "/" + result.data)}}),
                 m(".delete", {onclick: File.getPublicLink.bind(vnode.attrs)}),
             ])
         ])
