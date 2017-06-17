@@ -116,11 +116,14 @@ main {
 
                 p {
                     font-size: 18px;
+                    margin-bottom: 25px;
                 }
 
                 #linkInput {
+                    position: relative;
                     width: 100%;
                     input {
+                        position: relative;
                         width: 100%;
                         line-height: 40px;
                         background-color: black;
@@ -131,6 +134,21 @@ main {
                         color: rgba(white, .6);
                         font-size: 14px;
                         outline: none;
+                    }
+
+                    .link {
+                        width: 50px;
+                        height: 40px;
+                        position: absolute;
+                        right: 10px;
+                        top: 0;
+                        cursor: pointer;
+                        opacity: .7;
+                        background: url("images/link.png") center no-repeat;
+                        background-size: 35px;
+                        &:hover {
+                            opacity: 1;
+                        }
                     }
                 }
             }
