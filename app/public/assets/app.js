@@ -1,6 +1,8 @@
 const AppInit = (function(maxFileSize, token){
+
     delete window.AppInit;
     console.log(maxFileSize, token);
+
     const copyToClipboard = text => {
         if (window.clipboardData && window.clipboardData.setData) {
             // IE specific code path to prevent textarea being shown while dialog is visible.
@@ -21,6 +23,7 @@ const AppInit = (function(maxFileSize, token){
             }
         }
     }
+
     const bytesToSize = bytes => {
         if(bytes == 0) return '0 Byte';
         var k = 1000;
@@ -28,6 +31,7 @@ const AppInit = (function(maxFileSize, token){
         var i = Math.floor(Math.log(bytes) / Math.log(k));
         return (bytes / Math.pow(k, i)).toPrecision(3) + ' ' + sizes[i];
     }
+
     const throttle = (func, wait, options) => {
         var context, args, result;
         var timeout = null;
@@ -57,6 +61,7 @@ const AppInit = (function(maxFileSize, token){
             return result;
         }
     }
+
     const File = {
         //oninit: vnode => console.log(vnode),
         info: null,
@@ -119,25 +124,23 @@ const AppInit = (function(maxFileSize, token){
                         m(".sub", "Uploader")
                     ])
                 ]),
-                m("#content", vnode.children)
-            ])
-        }
-    }
-
-    const Nav = {
-        view: vnode => {
-            return m("nav", [
-                m("li", m("a", {class: vnode.attrs.active == "upload" ? "active" : "", href: "/", oncreate: m.route.link}, "Upload")),
-                m("li", m("a", {class: vnode.attrs.active == "manage" ? "active" : "",href: "/manage", oncreate: m.route.link}, "Manage"))
+                m("#content", [
+                    vnode.attrs.hasNav ? [
+                        m("nav", [
+                            m("li", m("a", {class: vnode.attrs.active == "upload" ? "active" : "", href: "/", oncreate: m.route.link}, "Upload")),
+                            m("li", m("a", {class: vnode.attrs.active == "manage" ? "active" : "",href: "/manage", oncreate: m.route.link}, "Manage"))
+                        ])
+                    ] : null,
+                    vnode.children
+                ])
             ])
         }
     }
 
     const Uploaded = {
-        fileName: "zm_placeholder",
+        fileName: "zm_placeholder", /* @Dave, add the actual file name <3 */
         view: vnode => {
             return [
-                m(Nav, {active: "upload"}),
                 m("#uploaded", [
                     m(".helper", [
                         m(".icon", {class: "exe" /* @Dave, TODO change depending on file extension. Just needs the class being changed to exe, zip, or iwd*/ }),
@@ -168,7 +171,6 @@ const AppInit = (function(maxFileSize, token){
     const Upload = {
         view: vnode => {
             return [
-                m(Nav, {active: "upload"}),
                 m("#dropzone", {
                     ondragenter: e => {
                         e.stopPropagation();
@@ -186,7 +188,7 @@ const AppInit = (function(maxFileSize, token){
                         var dataTransfer = e.dataTransfer;
                         interval = null;
                         if(dataTransfer && dataTransfer.files && dataTransfer.files.length > 0) {
-                            for(var i = 0; i < dataTransfer.files.length; i++) {
+                            for(let i = 0; i < dataTransfer.files.length; i++) {
                                 var file = dataTransfer.files[i];
                                 var xhr = new XMLHttpRequest();
                                 var upload = xhr.upload;
@@ -279,7 +281,6 @@ const AppInit = (function(maxFileSize, token){
         }),
         view: vnode => {
             return [
-                m(Nav, {active: "manage"}),
                 m("#manage", [
                     vnode.state.files.length == 0 && m("li", {title: "No files"}),
                     vnode.state.files.map(a => m(File, {name: a}))
@@ -288,11 +289,10 @@ const AppInit = (function(maxFileSize, token){
         }
     }
 
-    var root = document.getElementById("app");
-    m.route(root, "/", {
-        "/": {render: () => m(Layout, m(Upload))},
-        "/manage": {render: () => m(Layout, m(Manage))},
+    m.route(document.getElementById("app"), "/", {
+        "/": {render: () =>         m(Layout, {hasNav: true, active: "upload"}, m(Upload))},
+        "/manage": {render: () =>   m(Layout, {hasNav: true, active: "manage"}, m(Manage))},
         "/uploaded": {render: () => m(Layout, m(Uploaded))},
-        "/noauth": {render: () => m(Layout, m(NoAuth))}
+        "/noauth": {render: () =>   m(Layout, m(NoAuth))}
     })
 })
