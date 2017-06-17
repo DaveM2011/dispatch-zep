@@ -92,10 +92,15 @@ const AppInit = (function(maxFileSize, token){
                 }
             );
         },
-        view: vnode => m("div", vnode.attrs.name, [
-            m("a", {onclick: File.getPublicLink.bind(vnode.attrs)}, "Get public link"),
-            m("a", {onclick: File.getPublicLink.bind(vnode.attrs)}, "Delete"),
-            m("div", vnode.state.info)
+        view: vnode => m(".item", [
+            m(".main", [
+                m(".name", vnode.attrs.name),
+                m(".size", "100mb")
+            ]),
+            m(".action", [
+                m(".link", {onclick: File.getPublicLink.bind(vnode.attrs)}, "Get public link"),
+                m(".delete", {onclick: File.getPublicLink.bind(vnode.attrs)}, "Delete"),
+            ])
         ])
     }
 
@@ -127,6 +132,25 @@ const AppInit = (function(maxFileSize, token){
                 m("li", m("a", {class: vnode.attrs.active == "upload" ? "active" : "", href: "/", oncreate: m.route.link}, "Upload")),
                 m("li", m("a", {class: vnode.attrs.active == "manage" ? "active" : "",href: "/manage", oncreate: m.route.link}, "Manage"))
             ])
+        }
+    }
+
+    const Uploaded = {
+        fileName: "zm_placeholder",
+        view: vnode => {
+            return [
+                m(Nav, {active: "upload"}),
+                m("#uploaded", [
+                    m(".helper", [
+                        m(".icon", {class: "exe" /*TODO change depending on file extension*/ }),
+                        m("p", vnode.state.fileName+" has been uploaded"),
+                        m("#linkInput", [
+                            m("input", {onclick: e => e.target.select(), placeholder: "link"}),
+                            m(".link", {onclick: () => { copyToClipboard() }})
+                        ])
+                    ])
+                ])
+            ]
         }
     }
 
@@ -245,12 +269,10 @@ const AppInit = (function(maxFileSize, token){
         view: vnode => {
             return [
                 m(Nav, {active: "manage"}),
-                m("#manage",
-                    m("ul", [
-                        vnode.state.files.length == 0 && m("li", {title: "No files"}),
-                        vnode.state.files.map(a => m(File, {name: a}))
-                    ])
-                )
+                m("#manage", [
+                    vnode.state.files.length == 0 && m("li", {title: "No files"}),
+                    vnode.state.files.map(a => m(File, {name: a}))
+                ])
             ]
         }
     }
@@ -258,6 +280,7 @@ const AppInit = (function(maxFileSize, token){
     var root = document.getElementById("app");
     m.route(root, "/", {
         "/": {render: () => m(Layout, m(Upload))},
-        "/manage": {render: () => m(Layout, m(Manage))}
+        "/manage": {render: () => m(Layout, m(Manage))},
+        "/uploaded": {render: () => m(Layout, m(Uploaded))}
     })
 })
