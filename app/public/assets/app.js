@@ -2,7 +2,7 @@ const AppInit = (function(maxFileSize, authorized, username) {
 
     delete window.AppInit;
     
-    console.log(maxFileSize, authorized, username, typeof username);
+    console.log(maxFileSize, authorized, username);
 
     const allowedExts = ["exe", "zip", "iwd", "mkv"]
 
@@ -201,6 +201,7 @@ const AppInit = (function(maxFileSize, authorized, username) {
                                         tracking.lastTime = tracking.startTime;
                                         tracking.currentSpeed = 0;
                                         tracking.averageSpeed = 0;
+                                        tracking.maxSpeed = 0;
                                         tracking.bytesUploaded = bytesUploaded;
                                     } else if(tracking.startTime > tickTime) {
                                         //this.debug("When backwards in time");
@@ -219,6 +220,7 @@ const AppInit = (function(maxFileSize, authorized, username) {
                                         // Calculate speeds
                                         tracking.currentSpeed = (deltaBytes * 8) / (deltaTime / 1000);
                                         tracking.averageSpeed = (tracking.bytesUploaded * 8) / ((now - tracking.startTime) / 1000);
+                                        tracking.maxSpeed = tracking.currentSpeed > tracking.maxSpeed ? tracking.currentSpeed : tracking.maxSpeed;
                                     }
                                 }, 1000);
                                 
@@ -234,7 +236,7 @@ const AppInit = (function(maxFileSize, authorized, username) {
                                                 loaded: bytesToSize(e.loaded),
                                                 total: bytesToSize(e.total),
                                                 progress: Math.round(e.loaded / e.total * 100),
-                                                speed: {current: bytesToSize(tracking.currentSpeed), average: bytesToSize(tracking.averageSpeed)}
+                                                speed: {current: bytesToSize(tracking.currentSpeed), average: bytesToSize(tracking.averageSpeed), max: bytesToSize(tracking.maxSpeed)}
                                             }
                                             m.redraw();
                                         }
@@ -249,7 +251,7 @@ const AppInit = (function(maxFileSize, authorized, username) {
                         vnode.state.current && m(".center.progress-radial.progress-" + vnode.state.current.progress, m(".overlay", vnode.state.current.progress + "%")) || m(".icon"),
                         vnode.state.current && m(".center", [
                             m("", "Sent: " + vnode.state.current.loaded + "/" + vnode.state.current.total),
-                            m("", "Speed (current, average): " + vnode.state.current.speed.current + "/" + vnode.state.current.speed.average)
+                            m("", "Speed (current, average, max): " + vnode.state.current.speed.current + "/" + vnode.state.current.speed.average + "/" + vnode.state.current.speed.max)
                         ]),
                         m("span", "Max file size: " + maxFileSize)
                     ])
