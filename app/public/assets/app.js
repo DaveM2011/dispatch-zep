@@ -74,15 +74,13 @@ const AppInit = (function(maxFileSize, authorized, username) {
     }
 
     const File = {
-        view: vnode => m(".item", [
-            m(".main", [
+        view: vnode => m(".flex.justify-around.items-center.item", [
+            m(".flex-auto.main", [
                 m(".name", {title: vnode.attrs.name}, vnode.attrs.name),
                 m(".size", bytesToSize(vnode.attrs.size))
             ]),
-            m(".action", [
-                m(".link", {onclick: () => {copyToClipboard(location.origin + "/" + vnode.attrs.link), Msg.show("Link copied to clipboard") }}),
-                m(".delete", {onclick: e => File.remove(vnode.attrs.name)}),
-            ])
+            m(".link", {onclick: () => {copyToClipboard(location.origin + "/" + vnode.attrs.link), Msg.show("Link copied to clipboard") }}),
+            m(".delete", {onclick: e => File.remove(vnode.attrs.name)})
         ]),
         remove: name => {
             console.log(name);
@@ -97,7 +95,7 @@ const AppInit = (function(maxFileSize, authorized, username) {
 
     const Layout = {
         view: vnode => {
-            return m("main", [
+            return m("main.center", [
                 m("header", [
                     m(".logo"),
                     m(".brand", [
@@ -105,16 +103,16 @@ const AppInit = (function(maxFileSize, authorized, username) {
                         m(".sub", "Uploader")
                     ]),
                     username && m(".username", [
-                        m("", "Hi " + username),
-                        m("", "|"),
+                        m("span", "Hi " + username),
+                        m("span", "|"),
                         m("a[href=/logout]", "Logout")
                     ])
                 ]),
                 m("#content", [
-                    vnode.attrs.hasNav ? [
-                        m("nav", [
-                            m("li", m("a", {class: vnode.attrs.active == "upload" ? "active" : "", href: "/", oncreate: m.route.link}, "Upload")),
-                            m("li", m("a", {class: vnode.attrs.active == "manage" ? "active" : "", href: "/manage", oncreate: m.route.link}, "Manage"))
+                    vnode.attrs.hasNav && authorized ? [
+                        m("nav.flex", [
+                            m("a[href=/]", {class: vnode.attrs.active == "upload" ? "active" : "", oncreate: m.route.link}, "Upload"),
+                            m("a[href=/manage]", {class: vnode.attrs.active == "manage" ? "active" : "", oncreate: m.route.link}, "Manage")
                         ])
                     ] : null,
                     vnode.children
@@ -244,7 +242,7 @@ const AppInit = (function(maxFileSize, authorized, username) {
                                             m.redraw();
                                         }
                                     }
-                                }).then(data => (data.result[0] && (vnode.state.uploaded = data.result[0]), data))
+                                }).then(data => (data.result[0] && (vnode.state.uploaded = data.result[0]), data.error && m.route.set("/noauth"), data))
                             }
                         }
                         return false;

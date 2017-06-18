@@ -9,8 +9,10 @@
 	    <script src="//unpkg.com/mithril/mithril.js"></script>
 	</head>
 	<body>
-	    <div id="app" class="container"><?=$this->phtml(__DIR__ . '/' . $page)?></div>
-		<footer><p>Zombie Modding &copy; <?= date("Y", time()) ?> - All Rights Reserved</p></footer>
+	    <div class="container">
+			<div id="app"><?=$this->phtml(__DIR__ . '/' . $page)?></div>
+			<footer><p>Zombie Modding &copy; <?= date("Y", time()) ?> - All Rights Reserved</p></footer>
+		</div>
 	    <script src="/assets/app.js"></script>
 	    <script type="text/javascript">new AppInit("<?=ini_get('upload_max_filesize')?>", <?=$authorized?"true":"false"?>, <?=$username?'"'.$username.'"':"null"?>)</script>
 	</body>

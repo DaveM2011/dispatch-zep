@@ -98,9 +98,9 @@ try {
         if (!count($_FILES) || !$authorized) {
             return $app->response(json_encode(["error" => $authorized ? "no_files" : "not_authorized"]), 401, ["content-type" => "application/json"]);
         }
-        $dir = DATADIR . $_SESSION["user"][0] . "/";
-        if (!is_dir($dir)) {
-            mkdir($dir);
+        $dir = $_SESSION["user"][0] . "/";
+        if (!is_dir(DATADIR . $dir)) {
+            mkdir(DATADIR . $dir);
         }
         $status = 200;
         $json = [];
@@ -109,17 +109,17 @@ try {
             $json["debug"] = [$ext, array_search($ext, ["exe", "zip", "iwd", "mkv"])];
             if(array_search($ext, ["exe", "zip", "iwd", "mkv"]) !== false) {
                 $sanitized = preg_replace("/[^a-zA-Z0-9-_\.]/", "", basename($file["name"]));
-                if(file_exists($dir.$sanitized)) {
-                    unlink($dir.$sanitized);
+                if(file_exists(DATADIR . $dir . $sanitized)) {
+                    unlink(DATADIR . $dir . $sanitized);
                     //$status = 409;
                     //$json["result"][] = ["file" => $sanitized, "error" => "file_exits"];
                     //continue;
                 }
-                if(move_uploaded_file($file["tmp_name"], $dir.$sanitized)) {
+                if(move_uploaded_file($file["tmp_name"], DATADIR . $dir . $sanitized)) {
                     //$vcheck = vcheck2($sanitized);
                     //var_dump($vcheck);
-                    $key = hash_hmac("ripemd160", $sanitized, HMAC_KEY);
-                    $redis->hset("links", $key, $dir.$sanitized);
+                    $key = hash_hmac("ripemd160", $dir . $sanitized, HMAC_KEY);
+                    $redis->hset("links", $key, $dir . $sanitized);
                     $json["result"][] = ["file" => $sanitized, "ext" => $ext, "link" => $key];
                 } else {
                     unlink($file["tmp_name"]);
@@ -133,12 +133,12 @@ try {
         }
         return $app->response(json_encode($json), $status, ["content-type" => "application/json"]);
     });
-    $app->route("POST", '/manage', function () use ($app, $authorized) {
+    $app->route("POST", '/manage', function () use ($app, $authorized, $redis) {
         if (!isset($_GET["p"]) || !$authorized) {
             return $app->response(json_encode(["error" => $authorized ? "invalid_request" : "not_authorized"]), 401, ["content-type" => "application/json"]);
         }
         $json = [];
-        $dir = DATADIR . $_SESSION["user"][0] . "/";
+        $dir = $_SESSION["user"][0] . "/";
         if (!is_dir($dir)) {
             mkdir($dir);
         }
@@ -158,13 +158,17 @@ try {
                     $json["error"] = "no_file";
                     break;
                 }
-                $json["data"] = unlink($dir . $file);
+                $key = hash_hmac("ripemd160", $dir . $file, HMAC_KEY);
+                $redis->hdel("links", $key);
+                $json["data"] = unlink(DATADIR . $dir . $file);
                 break;
             default:
-                $found = array_filter(array_slice(scandir($dir),2),function($a)use($dir){return !is_dir($dir.$a);});
+                $found = array_filter(array_slice(scandir(DATADIR . $dir),2), function($a) use ($dir){
+                    return !is_dir(DATADIR . $dir . $a);
+                });
                 $files = [];
                 foreach($found as $file) {
-                    $files[] = ["name" => $file, "size" => filesize($dir.$file), "link" => hash_hmac("ripemd160", $file, HMAC_KEY)];
+                    $files[] = ["name" => $file, "size" => filesize(DATADIR . $dir . $file), "link" => hash_hmac("ripemd160", $dir . $file, HMAC_KEY)];
                 }
                 sort($files);
                 $json["data"] = $files;
