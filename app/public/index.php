@@ -202,7 +202,7 @@ try {
         exit;
     });
     $app->route("GET", "/", function () use ($app, $authorized) {
-        $html = $app->phtml(__DIR__ . "/views/theme", ["page" => "home", "authorized" => $authorized, "username" => $authorized ? $_SESSION["user"][1] : "null"]);
+        $html = $app->phtml(__DIR__ . "/views/theme", ["page" => "home", "authorized" => $authorized, "username" => $authorized ? $_SESSION["user"][1] : null]);
         return $app->response($html);
     });
     $app->dispatch();

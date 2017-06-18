@@ -2,7 +2,7 @@ const AppInit = (function(maxFileSize, authorized, username) {
 
     delete window.AppInit;
     
-    console.log(maxFileSize, authorized, username);
+    console.log(maxFileSize, authorized, username, typeof username);
 
     const allowedExts = ["exe", "zip", "iwd", "mkv"]
 
