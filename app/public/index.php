@@ -72,9 +72,7 @@ function del($file) {
 	out(array('ok' => 'File deleted'));
 }
 
-try {
-    $app = new Dispatch\Dispatch();
-    session_start();
+function check_auth($app) {
     if (isset($_GET["access_token"])) {
         $privkey_res = openssl_pkey_get_private("file://../priv.key");
         if ($privkey_res === false) {
@@ -82,18 +80,25 @@ try {
             exit;
         }
         openssl_private_decrypt(hex2bin($_GET["access_token"]), $decrypted, $privkey_res);
-        $_SESSION["access_token"] = $_GET["access_token"];
-        $_SESSION["access_id"] = $decrypted;
+        $_SESSION["user"] = json_decode($decrypted);
+        //$_SESSION["access_token"] = $_GET["access_token"];
+        //$_SESSION["access_id"] = $decrypted;
         $redirect = $app->redirect("/");
         $redirect->render();
         exit;
     }
-    $authorized = isset($_SESSION["access_token"]) ? $_SESSION["access_token"] : false;
+    return isset($_SESSION["user"]) ? true : false;
+}
+
+try {
+    $app = new Dispatch\Dispatch();
+    session_start();
+    $authorized = check_auth($app);
     $app->route("POST", "/upload", function () use ($app, $authorized, $redis) {
         if (!count($_FILES) || !$authorized) {
             return $app->response(json_encode(["error" => $authorized ? "no_files" : "not_authorized"]), 401, ["content-type" => "application/json"]);
         }
-        $dir = DATADIR . $_SESSION["access_id"] . "/";
+        $dir = DATADIR . $_SESSION["user"][0] . "/";
         if (!is_dir($dir)) {
             mkdir($dir);
         }
@@ -105,9 +110,10 @@ try {
             if(array_search($ext, ["exe", "zip", "iwd", "mkv"]) !== false) {
                 $sanitized = preg_replace("/[^a-zA-Z0-9-_\.]/", "", basename($file["name"]));
                 if(file_exists($dir.$sanitized)) {
-                    $status = 409;
-                    $json["result"][] = ["file" => $sanitized, "error" => "file_exits"];
-                    continue;
+                    unlink($dir.$sanitized);
+                    //$status = 409;
+                    //$json["result"][] = ["file" => $sanitized, "error" => "file_exits"];
+                    //continue;
                 }
                 if(move_uploaded_file($file["tmp_name"], $dir.$sanitized)) {
                     //$vcheck = vcheck2($sanitized);
@@ -132,7 +138,7 @@ try {
             return $app->response(json_encode(["error" => $authorized ? "invalid_request" : "not_authorized"]), 401, ["content-type" => "application/json"]);
         }
         $json = [];
-        $dir = DATADIR . $_SESSION["access_id"] . "/";
+        $dir = DATADIR . $_SESSION["user"][0] . "/";
         if (!is_dir($dir)) {
             mkdir($dir);
         }
@@ -167,8 +173,8 @@ try {
         return $app->response(json_encode($json), 200, ["content-type" => "application/json"]);
     });
     $app->route("GET", '/logout', function () use ($app, $authorized) {
-        unset($_SESSION["access_token"]);
-        unset($_SESSION["access_id"]);
+        unset($_SESSION["user"]);
+        //unset($_SESSION["access_id"]);
         return $app->redirect("/");
     });
     $app->route("GET", "/:hash", function ($args) use ($app, $authorized) {
@@ -183,8 +189,8 @@ try {
             exit;
         }
         $file = $redis->hget("links", $args["hash"]);
-        $ref = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : false;
-        $req = isset($_GET['tkn']) ? $_GET['tkn'] : true;
+        $ref = isset($_SERVER["HTTP_REFERER"]) ? $_SERVER["HTTP_REFERER"] : false;
+        $req = isset($_GET["tkn"]) ? $_GET["tkn"] : true;
         //if(preg_match("/zombiemodding\.com|zm-dev\.com/", $ref) && $req) {
             if(is_file($dir.$file)) {
                 send_file($dir.$file);
@@ -196,7 +202,7 @@ try {
         exit;
     });
     $app->route("GET", "/", function () use ($app, $authorized) {
-        $html = $app->phtml(__DIR__ . '/views/theme', ['page' => 'home', 'authorized' => $authorized]);
+        $html = $app->phtml(__DIR__ . "/views/theme", ["page" => "home", "authorized" => $authorized, "username" => $authorized ? $_SESSION["user"][1] : "null"]);
         return $app->response($html);
     });
     $app->dispatch();

@@ -4,7 +4,7 @@
 		<meta http-equiv="content-type" content="text/html" />
 		<title>ZM Upload</title>
 		<link href="https://fonts.googleapis.com/css?family=Roboto:300,400" rel="stylesheet">
-	    <link href="/assets/styles.min.css" rel="stylesheet" type="text/css" />
+	    <link href="/assets/styles.css" rel="stylesheet" type="text/css" />
 	    <!--[if gte IE 9]><style type="text/css">.gradient {filter: none;}</style><![endif]-->
 	    <script src="//unpkg.com/mithril/mithril.js"></script>
 	</head>
@@ -12,6 +12,6 @@
 	    <div id="app" class="container"><?=$this->phtml(__DIR__ . '/' . $page)?></div>
 		<footer><p>Zombie Modding &copy; <?= date("Y", time()) ?> - All Rights Reserved</p></footer>
 	    <script src="/assets/app.js"></script>
-	    <script type="text/javascript">new AppInit("<?=ini_get('upload_max_filesize')?>", <?=$authorized?"true":"false"?>)</script>
+	    <script type="text/javascript">new AppInit("<?=ini_get('upload_max_filesize')?>", <?=$authorized?"true":"false"?>, <?=$username?'"'.$username.'"':"null"?>)</script>
 	</body>
 </html>

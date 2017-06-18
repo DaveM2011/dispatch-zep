@@ -1,7 +1,11 @@
-const AppInit = (function(maxFileSize, authorized) {
+const AppInit = (function(maxFileSize, authorized, username) {
 
     delete window.AppInit;
     
+    console.log(maxFileSize, authorized, username);
+
+    const allowedExts = ["exe", "zip", "iwd", "mkv"]
+
     const copyToClipboard = text => {
         if (window.clipboardData && window.clipboardData.setData) {
             // IE specific code path to prevent textarea being shown while dialog is visible.
@@ -61,6 +65,14 @@ const AppInit = (function(maxFileSize, authorized) {
         }
     }
 
+    const Msg = {
+        _timer: null,
+        text: null,
+        show: (text, timeout) => (Msg.text = text, Msg._timer = setTimeout(Msg.hide, timeout || 2000)),
+        hide: () => (clearTimeout(Msg._timer), Msg._timer = null, Msg.text = null, m.redraw()),
+        view: vnode => m("div.msg" + (Msg.text ? ".showmsg" : ""), m("div", Msg.text))
+    }
+
     const File = {
         view: vnode => m(".item", [
             m(".main", [
@@ -68,7 +80,7 @@ const AppInit = (function(maxFileSize, authorized) {
                 m(".size", bytesToSize(vnode.attrs.size))
             ]),
             m(".action", [
-                m(".link", {onclick: () => {copyToClipboard(location.origin + "/" + vnode.attrs.link)}}),
+                m(".link", {onclick: () => {copyToClipboard(location.origin + "/" + vnode.attrs.link), Msg.show("Link copied to clipboard") }}),
                 m(".delete", {onclick: e => File.remove(vnode.attrs.name)}),
             ])
         ]),
@@ -79,7 +91,7 @@ const AppInit = (function(maxFileSize, authorized) {
             m.request({
                 method: "POST",
                 url: "/manage?p=del&f=" + name
-            }).then(data => (Manage.load(), data))
+            }).then(data => (Manage.load(), Msg.show("File removed"), data))
         }
     }
 
@@ -91,6 +103,11 @@ const AppInit = (function(maxFileSize, authorized) {
                     m(".brand", [
                         m(".title", "Zombie Modding"),
                         m(".sub", "Uploader")
+                    ]),
+                    username && m(".username", [
+                        m("", "Hi " + username),
+                        m("", "|"),
+                        m("a[href=/logout]", "Logout")
                     ])
                 ]),
                 m("#content", [
@@ -101,7 +118,8 @@ const AppInit = (function(maxFileSize, authorized) {
                         ])
                     ] : null,
                     vnode.children
-                ])
+                ]),
+                m(Msg)
             ])
         }
     }
@@ -115,7 +133,7 @@ const AppInit = (function(maxFileSize, authorized) {
                         m("p", vnode.attrs.file + " has been uploaded"),
                         m("#linkInput", [
                             m("input", {onclick: e => e.target.select(), placeholder: "link", value: location.origin + "/" + vnode.attrs.link, readonly: ""}),
-                            m(".link", {onclick: () => { copyToClipboard(location.origin + "/" + vnode.attrs.link) }})
+                            m(".link", {onclick: () => { copyToClipboard(location.origin + "/" + vnode.attrs.link), Msg.show("Link copied to clipboard") }})
                         ])
                     ])
                 ])
@@ -139,7 +157,7 @@ const AppInit = (function(maxFileSize, authorized) {
     const Upload = {
         uploaded: null,
         error: null,
-        current: null, // @Michael if vnode.state.current is not null display progress, speed.current & speed.average in view maybe a progress bar etc
+        current: null,
         view: vnode => {
             return vnode.state.uploaded && m(Uploaded, vnode.state.uploaded) || [
                 m("#dropzone", {
@@ -162,6 +180,10 @@ const AppInit = (function(maxFileSize, authorized) {
                         if(dataTransfer && dataTransfer.files && dataTransfer.files.length > 0) {
                             for(let i = 0; i < dataTransfer.files.length; i++) {
                                 var file = dataTransfer.files[i];
+                                var ext = file.name.substr(file.name.lastIndexOf('.') + 1);
+                                if (allowedExts.indexOf(ext) == -1) continue;
+                                //if (file.size > 536870912) continue;
+                                if (file.size > 1073741824) continue;
                                 var data = new FormData();
                                 data.append('dlmodulef', file);
                                 var received = 0, check = new Date().getTime(), bytesUploaded = 0, tracking = {};
@@ -209,8 +231,10 @@ const AppInit = (function(maxFileSize, authorized) {
                                         upload.onprogress = function(e) {
                                             tfun(e);
                                             vnode.state.current = {
+                                                loaded: bytesToSize(e.loaded),
+                                                total: bytesToSize(e.total),
                                                 progress: Math.round(e.loaded / e.total * 100),
-                                                speed: {current: tracking.currentSpeed, average: tracking.averageSpeed}
+                                                speed: {current: bytesToSize(tracking.currentSpeed), average: bytesToSize(tracking.averageSpeed)}
                                             }
                                             m.redraw();
                                         }
@@ -222,10 +246,10 @@ const AppInit = (function(maxFileSize, authorized) {
                     }
                 }, [
                     m(".info", [
-                        m(".icon"),
-                        vnode.state.current && m("", [
-                            m("", vnode.state.current.progress + "%"),
-                            m("", bytesToSize(vnode.state.current.speed.current) + "/" + bytesToSize(vnode.state.current.speed.average))
+                        vnode.state.current && m(".center.progress-radial.progress-" + vnode.state.current.progress, m(".overlay", vnode.state.current.progress + "%")) || m(".icon"),
+                        vnode.state.current && m(".center", [
+                            m("", "Sent: " + vnode.state.current.loaded + "/" + vnode.state.current.total),
+                            m("", "Speed (current, average): " + vnode.state.current.speed.current + "/" + vnode.state.current.speed.average)
                         ]),
                         m("span", "Max file size: " + maxFileSize)
                     ])
@@ -254,9 +278,9 @@ const AppInit = (function(maxFileSize, authorized) {
     }
 
     m.route(document.getElementById("app"), authorized ? "/" : "/noauth", {
-        "/": {onmatch: () => (authorized && Upload), render: vnode => m(Layout, {hasNav: true, active: "upload"}, vnode)},
-        "/manage": {onmatch: () => (authorized && Manage), render: vnode => m(Layout, {hasNav: true, active: "manage"}, vnode)},
-        "/uploaded": {onmatch: () => (authorized && Uploaded), render: vnode => m(Layout, vnode)},
+        "/": {onmatch: () => (authorized && Upload || NoAuth), render: vnode => m(Layout, {hasNav: true, active: "upload"}, vnode)},
+        "/manage": {onmatch: () => (authorized && Manage || NoAuth), render: vnode => m(Layout, {hasNav: true, active: "manage"}, vnode)},
+        "/uploaded": {onmatch: () => (authorized && Uploaded || NoAuth), render: vnode => m(Layout, vnode)},
         "/logout": {onmatch: () => window.location = "/logout"},
         "/noauth": {render: () => m(Layout, m(NoAuth))}
     })
