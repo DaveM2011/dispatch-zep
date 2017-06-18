@@ -1,8 +1,7 @@
 const AppInit = (function(maxFileSize, authorized) {
 
     delete window.AppInit;
-    console.log(maxFileSize, authorized);
-
+    
     const copyToClipboard = text => {
         if (window.clipboardData && window.clipboardData.setData) {
             // IE specific code path to prevent textarea being shown while dialog is visible.
@@ -69,7 +68,6 @@ const AppInit = (function(maxFileSize, authorized) {
                 m(".size", bytesToSize(vnode.attrs.size))
             ]),
             m(".action", [
-                /* @Dave, I've broken this. Could you fix it plz <3 */
                 m(".link", {onclick: () => {copyToClipboard(location.origin + "/" + vnode.attrs.link)}}),
                 m(".delete", {onclick: e => File.remove(vnode.attrs.name)}),
             ])
@@ -158,6 +156,7 @@ const AppInit = (function(maxFileSize, authorized) {
                     ondrop: e => {
                         e.stopPropagation();
                         e.preventDefault();
+                        if(vnode.state.current) return false;
                         var dataTransfer = e.dataTransfer;
                         interval = null;
                         if(dataTransfer && dataTransfer.files && dataTransfer.files.length > 0) {
@@ -213,6 +212,7 @@ const AppInit = (function(maxFileSize, authorized) {
                                                 progress: Math.round(e.loaded / e.total * 100),
                                                 speed: {current: tracking.currentSpeed, average: tracking.averageSpeed}
                                             }
+                                            m.redraw();
                                         }
                                     }
                                 }).then(data => (data.result[0] && (vnode.state.uploaded = data.result[0]), data))
@@ -223,6 +223,10 @@ const AppInit = (function(maxFileSize, authorized) {
                 }, [
                     m(".info", [
                         m(".icon"),
+                        vnode.state.current && m("", [
+                            m("", vnode.state.current.progress + "%"),
+                            m("", bytesToSize(vnode.state.current.speed.current) + "/" + bytesToSize(vnode.state.current.speed.average))
+                        ]),
                         m("span", "Max file size: " + maxFileSize)
                     ])
                 ])
