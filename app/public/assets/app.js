@@ -169,6 +169,10 @@ const AppInit = (function(maxFileSize, authorized, username) {
                     ondragover: e => {
                         e.stopPropagation();
                         e.preventDefault();
+                        if(e.dataTransfer && e.dataTransfer.items && e.dataTransfer.items.length > 1) {
+                            e.dataTransfer.effectAllowed = "none";
+                            e.dataTransfer.dropEffect = "none";
+                        }
                         return false;
                     },
                     ondrop: e => {
@@ -182,12 +186,11 @@ const AppInit = (function(maxFileSize, authorized, username) {
                                 var file = dataTransfer.files[i];
                                 var ext = file.name.substr(file.name.lastIndexOf('.') + 1);
                                 if (allowedExts.indexOf(ext) == -1) continue;
-                                //if (file.size > 536870912) continue;
                                 if (file.size > 1073741824) continue;
                                 var data = new FormData();
                                 data.append('dlmodulef', file);
                                 var received = 0, check = new Date().getTime(), bytesUploaded = 0, tracking = {};
-                                var tfun = throttle(function(e){
+                                var tfun = throttle(e => {
                                     bytesUploaded = e.loaded || 0;
                                     if(bytesUploaded < 0) {
                                         bytesUploaded = 0;
@@ -230,7 +233,7 @@ const AppInit = (function(maxFileSize, authorized, username) {
                                     data: data,
                                     config: xhr => {
                                         var upload = xhr.upload;
-                                        upload.onprogress = function(e) {
+                                        upload.onprogress = e => {
                                             tfun(e);
                                             vnode.state.current = {
                                                 loaded: bytesToSize(e.loaded),
