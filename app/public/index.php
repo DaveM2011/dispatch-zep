@@ -205,6 +205,25 @@ try {
         //}
         exit;
     });
+    $app->route("GET", "/f/:file", function ($args) use ($app, $authorized) {
+        global $redis;
+        $dir = DATADIR . "old/";
+        if(!isset($args["file"])) {
+            echo "file_name_missing";
+            exit;
+        }
+        $ref = isset($_SERVER["HTTP_REFERER"]) ? $_SERVER["HTTP_REFERER"] : false;
+        $req = isset($_GET["tkn"]) ? $_GET["tkn"] : true;
+        if(preg_match("/zombiemodding\.com|zm-dev\.com/", $ref) && $req) {
+            if(is_file($dir.$args["file"])) {
+                send_file($dir.$args["file"]);
+            }
+            echo "file_not_found";
+        } else {
+            echo "invalid_referer";
+        }
+        exit;
+    });
     $app->route("GET", "/", function () use ($app, $authorized) {
         $html = $app->phtml(__DIR__ . "/views/theme", ["page" => "home", "authorized" => $authorized, "username" => $authorized ? $_SESSION["user"][1] : null]);
         return $app->response($html);
